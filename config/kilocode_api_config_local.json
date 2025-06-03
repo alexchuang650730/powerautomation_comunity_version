@@ -1,0 +1,14 @@
+{
+  "api_key": "AIzaSyCPmZ4vt8oR8vXRFpqTqXcCF1GfhqkIkvw",
+  "model": "gemini-1.5-pro",
+  "base_url": "https://generativelanguage.googleapis.com/v1",
+  "temperature": 0.2,
+  "max_output_tokens": 8192,
+  "capabilities": {
+    "code_generation": true,
+    "code_interpretation": true,
+    "task_decomposition": true,
+    "code_optimization": true,
+    "complexity_analysis": true
+  }
+}

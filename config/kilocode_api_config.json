@@ -1,0 +1,23 @@
+{
+  "api_key": "kc_test_api_key_12345",
+  "server_url": "https://api.kilocode.ai/v1",
+  "timeout": 30,
+  "retry_attempts": 3,
+  "retry_delay": 1,
+  "capabilities": {
+    "code_generation": true,
+    "code_interpretation": true,
+    "task_decomposition": true,
+    "code_optimization": true,
+    "complexity_analysis": true
+  },
+  "cache": {
+    "enabled": true,
+    "ttl": 3600,
+    "max_size": 1000
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/kilocode_api.log"
+  }
+}

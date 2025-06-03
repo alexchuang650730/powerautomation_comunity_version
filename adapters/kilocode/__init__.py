@@ -1,0 +1,5 @@
+"""
+Kilo Code适配器包初始化文件
+
+此文件使kilocode目录成为一个Python包，便于导入。
+"""

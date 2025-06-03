@@ -1,0 +1,41 @@
+{
+  "training": {
+    "status": "failure",
+    "error": "RLFactorySRTIntegration.train() takes from 2 to 3 positional arguments but 4 were given"
+  },
+  "evaluation": {
+    "status": "failure",
+    "error": "RLFactorySRTIntegration.evaluate() takes 2 positional arguments but 5 were given"
+  },
+  "improvement": {
+    "status": "failure",
+    "error": "RLFactorySRTIntegration.improve() takes 2 positional arguments but 5 were given"
+  },
+  "end_to_end": {
+    "status": "failure",
+    "error": "RLFactorySRTIntegration.train() takes from 2 to 3 positional arguments but 4 were given"
+  },
+  "batch_training": {
+    "status": "failure",
+    "error": "RLFactorySRTIntegration.batch_train() takes from 2 to 3 positional arguments but 4 were given"
+  },
+  "model_save_load": {
+    "status": "success",
+    "details": {
+      "save_result": {
+        "success": false,
+        "error": "Adapter not initialized"
+      },
+      "load_result": {
+        "success": false,
+        "error": "Adapter not initialized"
+      },
+      "model_path": "results/test_model.pt"
+    }
+  },
+  "summary": {
+    "total_tests": 6,
+    "passed_tests": 1,
+    "pass_rate": "16.67%"
+  }
+}
