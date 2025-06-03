@@ -1,63 +1,63 @@
 #!/usr/bin/env python3
 """
-自动化测试工作流实现
+自动化测试工作流 - 使用mcpcoordinator cli模拟测试ppt agent
 
-此模块实现了自动化测试工作流，作为第一阶段方案的两大主轴之一。
-自动化测试工作流支持：
-1. Manus适配的自动化测试
-2. 新通用智能体的自动化测试
+本模块实现了一个完整的自动化测试工作流，专注于测试ppt agent的六大特性：
+1. 平台特性：PowerAutomation集成、文件格式处理、外部API集成
+2. UI布局特性：专用PPT界面、进度可视化、响应式设计
+3. 提示词特性：自然语言理解、模板管理、上下文提示
+4. 思维特性：AI内容生成、布局优化、视觉元素建议、逻辑流程与连贯性
+5. 内容特性：多模态输入处理、PPT生成引擎、多格式导出、视觉证据整合
+6. 记忆特性：任务历史管理等
 
-工作流利用多模型协同层的能力，实现端到端的自动化测试流程。
+测试流程以mcpcoordinator cli驱动ppt agent为主线，确保所有六大特性都得到充分验证。
 """
 
 import os
 import sys
 import json
+import subprocess
 import logging
-import time
-import argparse
-from typing import Dict, Any, List, Optional, Union, Tuple
-import threading
-
-# 添加父目录到路径，以便导入适配器和协同层
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# 导入多模型协同层
-from integration.multi_model_synergy import MultiModelSynergy
+from datetime import datetime
+from typing import Dict, List, Any, Optional, Tuple
 
 # 配置日志
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("ppt_agent_test.log"),
+        logging.StreamHandler()
+    ]
 )
-logger = logging.getLogger("automated_testing_workflow")
+logger = logging.getLogger("ppt_agent_test")
 
-class AutomatedTestingWorkflow:
-    """
-    自动化测试工作流实现，支持Manus适配的自动化测试和新通用智能体的自动化测试。
-    """
+class PptAgentTestWorkflow:
+    """PPT Agent自动化测试工作流"""
     
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str = "config/test_config.json"):
         """
-        初始化自动化测试工作流
+        初始化测试工作流
         
         Args:
-            config_path: 配置文件路径，如果为None则使用默认配置
+            config_path: 测试配置文件路径
         """
         self.config = self._load_config(config_path)
+        self.results = {
+            "platform_features": {},
+            "ui_layout_features": {},
+            "prompt_template_features": {},
+            "thinking_content_generation_features": {},
+            "content_features": {},
+            "memory_features": {},
+            "overall": {}
+        }
+        self.test_cases = self._prepare_test_cases()
+        self.report_path = f"results/ppt_agent_test_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         
-        # 初始化多模型协同层
-        self.synergy = MultiModelSynergy(config_path)
-        
-        # 初始化测试结果存储
-        self.results_dir = self.config.get("results_dir", "results")
-        os.makedirs(self.results_dir, exist_ok=True)
-        
-        logger.info("Initialized automated testing workflow")
-    
-    def _load_config(self, config_path: Optional[str]) -> Dict[str, Any]:
+    def _load_config(self, config_path: str) -> Dict[str, Any]:
         """
-        加载配置文件
+        加载测试配置
         
         Args:
             config_path: 配置文件路径
@@ -65,778 +65,384 @@ class AutomatedTestingWorkflow:
         Returns:
             配置字典
         """
-        default_config = {
-            "results_dir": "../results",
-            "test_types": ["manus_compatible", "new_agent"],
-            "test_scenarios": ["code_generation", "code_analysis", "end_to_end"],
-            "parallel_tests": 2,
-            "timeout": 300
-        }
-        
-        if not config_path:
-            return default_config
-        
         try:
+            if not os.path.exists(config_path):
+                # 如果配置文件不存在，创建默认配置
+                default_config = {
+                    "mcpcoordinator_path": "mcptool/mcpcoordinator",
+                    "test_data_dir": "cli_testing/test_data",
+                    "output_dir": "results",
+                    "timeout": 300,
+                    "features_to_test": ["platform", "ui_layout", "prompt_template", 
+                                        "thinking_content_generation", "content", "memory"],
+                    "test_levels": ["unit", "integration", "e2e"]
+                }
+                os.makedirs(os.path.dirname(config_path), exist_ok=True)
+                with open(config_path, 'w') as f:
+                    json.dump(default_config, f, indent=2)
+                return default_config
+            
             with open(config_path, 'r') as f:
-                config = json.load(f)
-                
-            # 合并默认配置和加载的配置
-            for key, value in default_config.items():
-                if key not in config:
-                    config[key] = value
-            
-            return config
+                return json.load(f)
         except Exception as e:
-            logger.error(f"Failed to load config from {config_path}: {str(e)}")
-            return default_config
+            logger.error(f"加载配置文件失败: {e}")
+            # 返回默认配置
+            return {
+                "mcpcoordinator_path": "mcptool/mcpcoordinator",
+                "test_data_dir": "cli_testing/test_data",
+                "output_dir": "results",
+                "timeout": 300,
+                "features_to_test": ["platform", "ui_layout", "prompt_template", 
+                                    "thinking_content_generation", "content", "memory"],
+                "test_levels": ["unit", "integration", "e2e"]
+            }
     
-    def initialize(self) -> bool:
+    def _prepare_test_cases(self) -> Dict[str, List[Dict[str, Any]]]:
         """
-        初始化工作流
+        准备测试用例
         
         Returns:
-            初始化是否成功
+            按特性分类的测试用例字典
         """
-        try:
-            # 初始化多模型协同层
-            if not self.synergy.initialize():
-                logger.error("Failed to initialize multi-model synergy layer")
-                return False
-            
-            logger.info("Automated testing workflow initialized successfully")
-            return True
-        except Exception as e:
-            logger.error(f"Error initializing automated testing workflow: {str(e)}")
-            return False
+        test_cases = {
+            "platform": [
+                {
+                    "name": "测试PowerAutomation集成",
+                    "command": "test_powerautomation_integration",
+                    "args": ["--intent-routing", "--task-queue"],
+                    "expected_result": {"status": "success"}
+                },
+                {
+                    "name": "测试文件格式处理",
+                    "command": "test_file_format_handling",
+                    "args": ["--input-formats", "txt,md,csv", "--output-formats", "pptx,pdf"],
+                    "expected_result": {"status": "success"}
+                }
+            ],
+            "ui_layout": [
+                {
+                    "name": "测试专用PPT界面",
+                    "command": "test_dedicated_ppt_interface",
+                    "args": ["--template-selector", "--outline-editor"],
+                    "expected_result": {"status": "success"}
+                },
+                {
+                    "name": "测试进度可视化",
+                    "command": "test_progress_visualization",
+                    "args": ["--task-timeline", "--step-indicators"],
+                    "expected_result": {"status": "success"}
+                }
+            ],
+            "prompt_template": [
+                {
+                    "name": "测试自然语言理解",
+                    "command": "test_natural_language_understanding",
+                    "args": ["--intent-recognition", "--entity-extraction"],
+                    "expected_result": {"status": "success"}
+                },
+                {
+                    "name": "测试模板管理",
+                    "command": "test_template_management",
+                    "args": ["--builtin-templates", "--user-template-upload"],
+                    "expected_result": {"status": "success"}
+                }
+            ],
+            "thinking_content_generation": [
+                {
+                    "name": "测试AI内容生成",
+                    "command": "test_ai_content_generation",
+                    "args": ["--outline-to-slides", "--text-summarization"],
+                    "expected_result": {"status": "success"}
+                },
+                {
+                    "name": "测试布局优化",
+                    "command": "test_layout_optimization",
+                    "args": ["--content-aware-layout", "--visual-hierarchy"],
+                    "expected_result": {"status": "success"}
+                }
+            ],
+            "content": [
+                {
+                    "name": "测试多模态输入处理",
+                    "command": "test_multimodal_input_handling",
+                    "args": ["--text-parsing", "--data-visualization"],
+                    "expected_result": {"status": "success"}
+                },
+                {
+                    "name": "测试PPT生成引擎",
+                    "command": "test_ppt_generation_engine",
+                    "args": ["--engine", "python-pptx", "--master-slide-support"],
+                    "expected_result": {"status": "success"}
+                }
+            ],
+            "memory": [
+                {
+                    "name": "测试任务历史管理",
+                    "command": "test_task_history_management",
+                    "args": ["--log-level", "detailed", "--retention-policy", "permanent"],
+                    "expected_result": {"status": "success"}
+                }
+            ]
+        }
+        return test_cases
     
-    def shutdown(self) -> bool:
+    def run_mcpcoordinator_command(self, command: str, args: List[str]) -> Tuple[bool, Dict[str, Any]]:
         """
-        关闭工作流
-        
-        Returns:
-            关闭是否成功
-        """
-        try:
-            # 关闭多模型协同层
-            if not self.synergy.shutdown():
-                logger.error("Failed to shut down multi-model synergy layer")
-                return False
-            
-            logger.info("Automated testing workflow shut down successfully")
-            return True
-        except Exception as e:
-            logger.error(f"Error shutting down automated testing workflow: {str(e)}")
-            return False
-    
-    def run_manus_compatible_tests(self, test_cases: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        运行Manus兼容的自动化测试
+        运行mcpcoordinator命令
         
         Args:
-            test_cases: 测试用例列表
+            command: 命令名称
+            args: 命令参数
             
         Returns:
-            测试结果
+            (成功标志, 结果字典)
         """
-        logger.info(f"Running {len(test_cases)} Manus compatible tests")
-        
-        results = {
-            "test_type": "manus_compatible",
-            "total_tests": len(test_cases),
-            "passed_tests": 0,
-            "failed_tests": 0,
-            "test_results": [],
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-        }
-        
-        for i, test_case in enumerate(test_cases):
-            logger.info(f"Running test case {i+1}/{len(test_cases)}: {test_case.get('name', 'Unnamed test')}")
+        try:
+            # 构建完整命令
+            full_command = [self.config["mcpcoordinator_path"], command] + args
+            logger.info(f"执行命令: {' '.join(full_command)}")
             
-            try:
-                # 获取测试类型和输入
-                test_type = test_case.get("type", "code_generation")
-                test_input = test_case.get("input", {})
-                expected_output = test_case.get("expected_output", {})
-                
-                # 运行测试
-                start_time = time.time()
-                
-                if test_type == "code_generation":
-                    # 代码生成测试
-                    prompt = test_input.get("prompt", "")
-                    context = test_input.get("context", {})
-                    
-                    # 使用多模型协同层生成代码
-                    step = {"description": prompt}
-                    code_result = self.synergy.generate_code(step, context)
-                    
-                    # 验证结果
-                    test_passed = self._validate_code_generation(code_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": code_result
-                    }
-                
-                elif test_type == "code_analysis":
-                    # 代码分析测试
-                    code = test_input.get("code", "")
-                    
-                    # 使用多模型协同层分析代码
-                    analysis_result = self.synergy.analyze_code(code)
-                    
-                    # 验证结果
-                    test_passed = self._validate_code_analysis(analysis_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": analysis_result
-                    }
-                
-                elif test_type == "end_to_end":
-                    # 端到端测试
-                    problem_description = test_input.get("problem_description", "")
-                    
-                    # 使用多模型协同层执行端到端流程
-                    end_to_end_result = self.synergy.execute_end_to_end(problem_description)
-                    
-                    # 验证结果
-                    test_passed = self._validate_end_to_end(end_to_end_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": end_to_end_result
-                    }
-                
-                else:
-                    # 未知测试类型
-                    logger.warning(f"Unknown test type: {test_type}")
-                    test_passed = False
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": False,
-                        "error": f"Unknown test type: {test_type}"
-                    }
-                
-                # 更新结果统计
-                if test_passed:
-                    results["passed_tests"] += 1
-                else:
-                    results["failed_tests"] += 1
-                
-                # 添加测试结果
-                results["test_results"].append(test_result)
-                
-                logger.info(f"Test case {i+1}/{len(test_cases)} {'passed' if test_passed else 'failed'} in {test_result.get('execution_time', 0):.2f}s")
-                
-            except Exception as e:
-                # 测试执行异常
-                logger.error(f"Error running test case {i+1}/{len(test_cases)}: {str(e)}")
-                
-                results["failed_tests"] += 1
-                results["test_results"].append({
-                    "name": test_case.get("name", f"Test {i+1}"),
-                    "type": test_case.get("type", "unknown"),
-                    "passed": False,
-                    "error": str(e)
-                })
-        
-        # 计算通过率
-        results["pass_rate"] = f"{results['passed_tests'] / results['total_tests'] * 100:.2f}%" if results["total_tests"] > 0 else "N/A"
-        
-        logger.info(f"Manus compatible tests completed: {results['passed_tests']}/{results['total_tests']} tests passed ({results['pass_rate']})")
-        
-        return results
+            # 执行命令
+            result = subprocess.run(
+                full_command,
+                capture_output=True,
+                text=True,
+                timeout=self.config["timeout"]
+            )
+            
+            # 解析结果
+            if result.returncode == 0:
+                try:
+                    output = json.loads(result.stdout)
+                    return True, output
+                except json.JSONDecodeError:
+                    return True, {"raw_output": result.stdout}
+            else:
+                logger.error(f"命令执行失败: {result.stderr}")
+                return False, {"error": result.stderr}
+        except subprocess.TimeoutExpired:
+            logger.error(f"命令执行超时")
+            return False, {"error": "Command timed out"}
+        except Exception as e:
+            logger.error(f"执行命令时发生错误: {e}")
+            return False, {"error": str(e)}
     
-    def run_new_agent_tests(self, test_cases: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def test_feature(self, feature: str) -> Dict[str, Any]:
         """
-        运行新通用智能体的自动化测试
+        测试特定特性
         
         Args:
-            test_cases: 测试用例列表
+            feature: 特性名称
             
         Returns:
-            测试结果
+            测试结果字典
         """
-        logger.info(f"Running {len(test_cases)} new agent tests")
+        logger.info(f"开始测试特性: {feature}")
+        feature_results = {}
         
-        results = {
-            "test_type": "new_agent",
-            "total_tests": len(test_cases),
-            "passed_tests": 0,
-            "failed_tests": 0,
-            "test_results": [],
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
+        if feature not in self.test_cases:
+            logger.warning(f"未找到特性 {feature} 的测试用例")
+            return {"status": "skipped", "reason": "No test cases defined"}
+        
+        for test_case in self.test_cases[feature]:
+            test_name = test_case["name"]
+            logger.info(f"执行测试: {test_name}")
+            
+            success, result = self.run_mcpcoordinator_command(
+                test_case["command"],
+                test_case["args"]
+            )
+            
+            # 验证结果
+            if success:
+                expected = test_case["expected_result"]
+                if "status" in result and result["status"] == expected["status"]:
+                    test_result = {
+                        "status": "passed",
+                        "details": result
+                    }
+                else:
+                    test_result = {
+                        "status": "failed",
+                        "reason": "Result does not match expected",
+                        "expected": expected,
+                        "actual": result
+                    }
+            else:
+                test_result = {
+                    "status": "failed",
+                    "reason": "Command execution failed",
+                    "details": result
+                }
+            
+            feature_results[test_name] = test_result
+            logger.info(f"测试 {test_name} 结果: {test_result['status']}")
+        
+        # 计算特性测试的总体结果
+        passed = sum(1 for r in feature_results.values() if r["status"] == "passed")
+        total = len(feature_results)
+        
+        summary = {
+            "total": total,
+            "passed": passed,
+            "failed": total - passed,
+            "pass_rate": f"{passed/total*100:.2f}%" if total > 0 else "N/A"
         }
         
-        for i, test_case in enumerate(test_cases):
-            logger.info(f"Running test case {i+1}/{len(test_cases)}: {test_case.get('name', 'Unnamed test')}")
-            
-            try:
-                # 获取测试类型和输入
-                test_type = test_case.get("type", "analysis")
-                test_input = test_case.get("input", {})
-                expected_output = test_case.get("expected_output", {})
-                
-                # 运行测试
-                start_time = time.time()
-                
-                if test_type == "analysis":
-                    # 分析能力测试
-                    problem_description = test_input.get("problem_description", "")
-                    
-                    # 使用多模型协同层分析问题
-                    analysis_result = self.synergy.analyze_problem(problem_description)
-                    
-                    # 验证结果
-                    test_passed = self._validate_analysis(analysis_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": analysis_result
-                    }
-                
-                elif test_type == "planning":
-                    # 规划能力测试
-                    analysis = test_input.get("analysis", {})
-                    
-                    # 使用多模型协同层生成计划
-                    plan_result = self.synergy.generate_plan(analysis)
-                    
-                    # 验证结果
-                    test_passed = self._validate_planning(plan_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": plan_result
-                    }
-                
-                elif test_type == "code_generation":
-                    # 代码生成能力测试
-                    step = test_input.get("step", {})
-                    context = test_input.get("context", {})
-                    
-                    # 使用多模型协同层生成代码
-                    code_result = self.synergy.generate_code(step, context)
-                    
-                    # 验证结果
-                    test_passed = self._validate_code_generation(code_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": code_result
-                    }
-                
-                elif test_type == "end_to_end":
-                    # 一步直达能力测试
-                    problem_description = test_input.get("problem_description", "")
-                    
-                    # 使用多模型协同层执行端到端流程
-                    end_to_end_result = self.synergy.execute_end_to_end(problem_description)
-                    
-                    # 验证结果
-                    test_passed = self._validate_end_to_end(end_to_end_result, expected_output)
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": test_passed,
-                        "execution_time": time.time() - start_time,
-                        "result": end_to_end_result
-                    }
-                
-                else:
-                    # 未知测试类型
-                    logger.warning(f"Unknown test type: {test_type}")
-                    test_passed = False
-                    test_result = {
-                        "name": test_case.get("name", f"Test {i+1}"),
-                        "type": test_type,
-                        "passed": False,
-                        "error": f"Unknown test type: {test_type}"
-                    }
-                
-                # 更新结果统计
-                if test_passed:
-                    results["passed_tests"] += 1
-                else:
-                    results["failed_tests"] += 1
-                
-                # 添加测试结果
-                results["test_results"].append(test_result)
-                
-                logger.info(f"Test case {i+1}/{len(test_cases)} {'passed' if test_passed else 'failed'} in {test_result.get('execution_time', 0):.2f}s")
-                
-            except Exception as e:
-                # 测试执行异常
-                logger.error(f"Error running test case {i+1}/{len(test_cases)}: {str(e)}")
-                
-                results["failed_tests"] += 1
-                results["test_results"].append({
-                    "name": test_case.get("name", f"Test {i+1}"),
-                    "type": test_case.get("type", "unknown"),
-                    "passed": False,
-                    "error": str(e)
-                })
-        
-        # 计算通过率
-        results["pass_rate"] = f"{results['passed_tests'] / results['total_tests'] * 100:.2f}%" if results["total_tests"] > 0 else "N/A"
-        
-        logger.info(f"New agent tests completed: {results['passed_tests']}/{results['total_tests']} tests passed ({results['pass_rate']})")
-        
-        return results
+        return {
+            "test_cases": feature_results,
+            "summary": summary
+        }
     
-    def run_all_tests(self, test_cases_file: str) -> Dict[str, Any]:
+    def run_all_tests(self) -> Dict[str, Any]:
         """
         运行所有测试
         
-        Args:
-            test_cases_file: 测试用例文件路径
-            
         Returns:
-            测试结果
+            完整测试结果
         """
-        try:
-            # 加载测试用例
-            with open(test_cases_file, 'r') as f:
-                test_cases = json.load(f)
-            
-            # 分离Manus兼容测试和新通用智能体测试
-            manus_tests = test_cases.get("manus_compatible_tests", [])
-            new_agent_tests = test_cases.get("new_agent_tests", [])
-            
-            logger.info(f"Loaded {len(manus_tests)} Manus compatible tests and {len(new_agent_tests)} new agent tests")
-            
-            # 运行测试
-            manus_results = self.run_manus_compatible_tests(manus_tests)
-            new_agent_results = self.run_new_agent_tests(new_agent_tests)
-            
-            # 合并结果
-            results = {
-                "manus_compatible_results": manus_results,
-                "new_agent_results": new_agent_results,
-                "total_tests": manus_results["total_tests"] + new_agent_results["total_tests"],
-                "passed_tests": manus_results["passed_tests"] + new_agent_results["passed_tests"],
-                "failed_tests": manus_results["failed_tests"] + new_agent_results["failed_tests"],
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
-            
-            # 计算总体通过率
-            results["overall_pass_rate"] = f"{results['passed_tests'] / results['total_tests'] * 100:.2f}%" if results["total_tests"] > 0 else "N/A"
-            
-            logger.info(f"All tests completed: {results['passed_tests']}/{results['total_tests']} tests passed ({results['overall_pass_rate']})")
-            
-            # 保存结果
-            output_file = os.path.join(self.results_dir, f"test_results_{time.strftime('%Y%m%d_%H%M%S')}.json")
-            with open(output_file, 'w') as f:
-                json.dump(results, f, indent=2)
-            
-            logger.info(f"Test results saved to {output_file}")
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"Error running all tests: {str(e)}")
-            return {
-                "error": str(e),
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S")
-            }
+        logger.info("开始运行所有测试")
+        start_time = datetime.now()
+        
+        # 测试每个特性
+        for feature in self.config["features_to_test"]:
+            feature_key = f"{feature}_features"
+            self.results[feature_key] = self.test_feature(feature)
+        
+        # 计算总体结果
+        total_tests = sum(r["summary"]["total"] for r in self.results.values() if "summary" in r)
+        passed_tests = sum(r["summary"]["passed"] for r in self.results.values() if "summary" in r)
+        
+        self.results["overall"] = {
+            "total_tests": total_tests,
+            "passed_tests": passed_tests,
+            "failed_tests": total_tests - passed_tests,
+            "pass_rate": f"{passed_tests/total_tests*100:.2f}%" if total_tests > 0 else "N/A",
+            "duration": str(datetime.now() - start_time)
+        }
+        
+        logger.info(f"测试完成. 总体通过率: {self.results['overall']['pass_rate']}")
+        
+        # 保存测试报告
+        self._save_report()
+        
+        return self.results
     
-    def generate_test_cases(self, requirements_file: str) -> str:
-        """
-        根据需求生成测试用例
-        
-        Args:
-            requirements_file: 需求文件路径
-            
-        Returns:
-            生成的测试用例文件路径
-        """
-        try:
-            # 加载需求
-            with open(requirements_file, 'r') as f:
-                requirements = f.read()
-            
-            logger.info(f"Generating test cases from requirements file: {requirements_file}")
-            
-            # 构建提示
-            prompt = f"""
-Generate comprehensive test cases for the following requirements:
-
-{requirements}
-
-The test cases should cover both Manus compatible tests and new agent tests.
-"""
-            
-            # 使用多模型协同层分析问题
-            analysis = self.synergy.analyze_problem(prompt)
-            
-            # 生成测试用例
-            test_cases = {
-                "manus_compatible_tests": [],
-                "new_agent_tests": []
-            }
-            
-            # 为Manus兼容测试生成测试用例
-            for i, subtask in enumerate(analysis.get("breakdown", [])[:5]):  # 限制测试用例数量
-                description = subtask.get("description", "")
-                
-                if "code generation" in description.lower():
-                    test_case = {
-                        "name": f"Manus Code Generation Test {i+1}",
-                        "type": "code_generation",
-                        "input": {
-                            "prompt": f"Write a function to {description.lower()}",
-                            "context": {"language": "python"}
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["manus_compatible_tests"].append(test_case)
-                
-                elif "analysis" in description.lower():
-                    test_case = {
-                        "name": f"Manus Code Analysis Test {i+1}",
-                        "type": "code_analysis",
-                        "input": {
-                            "code": "def example(n):\n    result = 0\n    for i in range(n):\n        result += i\n    return result"
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["manus_compatible_tests"].append(test_case)
-                
-                else:
-                    test_case = {
-                        "name": f"Manus End-to-End Test {i+1}",
-                        "type": "end_to_end",
-                        "input": {
-                            "problem_description": f"Create a solution to {description.lower()}"
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["manus_compatible_tests"].append(test_case)
-            
-            # 为新通用智能体测试生成测试用例
-            for i, subtask in enumerate(analysis.get("breakdown", [])[5:10]):  # 限制测试用例数量
-                description = subtask.get("description", "")
-                
-                if "analysis" in description.lower():
-                    test_case = {
-                        "name": f"New Agent Analysis Test {i+1}",
-                        "type": "analysis",
-                        "input": {
-                            "problem_description": f"Analyze the following problem: {description.lower()}"
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["new_agent_tests"].append(test_case)
-                
-                elif "plan" in description.lower():
-                    test_case = {
-                        "name": f"New Agent Planning Test {i+1}",
-                        "type": "planning",
-                        "input": {
-                            "analysis": {
-                                "problem": f"Create a plan for {description.lower()}",
-                                "breakdown": []
-                            }
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["new_agent_tests"].append(test_case)
-                
-                elif "code" in description.lower():
-                    test_case = {
-                        "name": f"New Agent Code Generation Test {i+1}",
-                        "type": "code_generation",
-                        "input": {
-                            "step": {"description": f"Write code to {description.lower()}"},
-                            "context": {"language": "python"}
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["new_agent_tests"].append(test_case)
-                
-                else:
-                    test_case = {
-                        "name": f"New Agent End-to-End Test {i+1}",
-                        "type": "end_to_end",
-                        "input": {
-                            "problem_description": f"Create a solution to {description.lower()}"
-                        },
-                        "expected_output": {
-                            "status": "success"
-                        }
-                    }
-                    test_cases["new_agent_tests"].append(test_case)
-            
-            # 保存测试用例
-            output_file = os.path.join(self.results_dir, f"test_cases_{time.strftime('%Y%m%d_%H%M%S')}.json")
-            with open(output_file, 'w') as f:
-                json.dump(test_cases, f, indent=2)
-            
-            logger.info(f"Generated {len(test_cases['manus_compatible_tests'])} Manus compatible tests and {len(test_cases['new_agent_tests'])} new agent tests")
-            logger.info(f"Test cases saved to {output_file}")
-            
-            return output_file
-            
-        except Exception as e:
-            logger.error(f"Error generating test cases: {str(e)}")
-            return ""
+    def _save_report(self) -> None:
+        """保存测试报告"""
+        os.makedirs(os.path.dirname(self.report_path), exist_ok=True)
+        with open(self.report_path, 'w') as f:
+            json.dump(self.results, f, indent=2)
+        logger.info(f"测试报告已保存至: {self.report_path}")
     
-    def _validate_code_generation(self, result: Dict[str, Any], expected_output: Dict[str, Any]) -> bool:
+    def generate_html_report(self) -> str:
         """
-        验证代码生成结果
+        生成HTML测试报告
         
-        Args:
-            result: 代码生成结果
-            expected_output: 期望输出
-            
         Returns:
-            验证是否通过
+            HTML报告路径
         """
-        # 检查基本结构
-        if "error" in result:
-            return False
+        html_path = self.report_path.replace('.json', '.html')
         
-        if "code" not in result:
-            return False
-        
-        # 检查代码是否为空
-        if not result["code"]:
-            return False
-        
-        # 如果期望输出中有特定检查项，则进行检查
-        if "contains" in expected_output:
-            for item in expected_output["contains"]:
-                if item not in result["code"]:
-                    return False
-        
-        return True
-    
-    def _validate_code_analysis(self, result: Dict[str, Any], expected_output: Dict[str, Any]) -> bool:
+        # 简单的HTML报告模板
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>PPT Agent 测试报告</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; margin: 20px; }}
+                h1 {{ color: #333; }}
+                .summary {{ background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin-bottom: 20px; }}
+                .feature {{ margin-bottom: 30px; }}
+                .test-case {{ margin-left: 20px; margin-bottom: 10px; }}
+                .passed {{ color: green; }}
+                .failed {{ color: red; }}
+                table {{ border-collapse: collapse; width: 100%; }}
+                th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+                th {{ background-color: #f2f2f2; }}
+                tr:nth-child(even) {{ background-color: #f9f9f9; }}
+            </style>
+        </head>
+        <body>
+            <h1>PPT Agent 测试报告</h1>
+            <div class="summary">
+                <h2>总体结果</h2>
+                <p>总测试数: {self.results["overall"]["total_tests"]}</p>
+                <p>通过测试数: {self.results["overall"]["passed_tests"]}</p>
+                <p>失败测试数: {self.results["overall"]["failed_tests"]}</p>
+                <p>通过率: {self.results["overall"]["pass_rate"]}</p>
+                <p>测试耗时: {self.results["overall"]["duration"]}</p>
+            </div>
         """
-        验证代码分析结果
         
-        Args:
-            result: 代码分析结果
-            expected_output: 期望输出
+        # 添加每个特性的测试结果
+        for feature_key, feature_results in self.results.items():
+            if feature_key == "overall" or "summary" not in feature_results:
+                continue
+                
+            feature_name = feature_key.replace("_features", "").replace("_", " ").title()
+            html_content += f"""
+            <div class="feature">
+                <h2>{feature_name} 特性</h2>
+                <p>总测试数: {feature_results["summary"]["total"]}</p>
+                <p>通过测试数: {feature_results["summary"]["passed"]}</p>
+                <p>失败测试数: {feature_results["summary"]["failed"]}</p>
+                <p>通过率: {feature_results["summary"]["pass_rate"]}</p>
+                
+                <h3>测试用例详情</h3>
+                <table>
+                    <tr>
+                        <th>测试名称</th>
+                        <th>状态</th>
+                        <th>详情</th>
+                    </tr>
+            """
             
-        Returns:
-            验证是否通过
-        """
-        # 检查基本结构
-        if "error" in result:
-            return False
-        
-        if "analysis" not in result:
-            return False
-        
-        # 检查分析是否为空
-        if not result["analysis"]:
-            return False
-        
-        # 如果期望输出中有特定检查项，则进行检查
-        if "contains" in expected_output:
-            for item in expected_output["contains"]:
-                if item not in str(result["analysis"]):
-                    return False
-        
-        return True
-    
-    def _validate_end_to_end(self, result: Dict[str, Any], expected_output: Dict[str, Any]) -> bool:
-        """
-        验证端到端结果
-        
-        Args:
-            result: 端到端结果
-            expected_output: 期望输出
+            for test_name, test_result in feature_results["test_cases"].items():
+                status_class = "passed" if test_result["status"] == "passed" else "failed"
+                details = test_result.get("reason", "") if test_result["status"] != "passed" else ""
+                
+                html_content += f"""
+                    <tr>
+                        <td>{test_name}</td>
+                        <td class="{status_class}">{test_result["status"]}</td>
+                        <td>{details}</td>
+                    </tr>
+                """
             
-        Returns:
-            验证是否通过
+            html_content += """
+                </table>
+            </div>
+            """
+        
+        html_content += """
+        </body>
+        </html>
         """
-        # 检查基本结构
-        if "error" in result:
-            return False
         
-        if "status" not in result:
-            return False
+        with open(html_path, 'w') as f:
+            f.write(html_content)
         
-        # 检查状态
-        if result["status"] != "success":
-            return False
-        
-        # 检查是否包含必要的步骤结果
-        required_keys = ["analysis", "plan", "code_results"]
-        for key in required_keys:
-            if key not in result:
-                return False
-        
-        # 如果期望输出中有特定检查项，则进行检查
-        if "contains" in expected_output:
-            for item in expected_output["contains"]:
-                if item not in str(result):
-                    return False
-        
-        return True
-    
-    def _validate_analysis(self, result: Dict[str, Any], expected_output: Dict[str, Any]) -> bool:
-        """
-        验证分析结果
-        
-        Args:
-            result: 分析结果
-            expected_output: 期望输出
-            
-        Returns:
-            验证是否通过
-        """
-        # 检查基本结构
-        if "error" in result:
-            return False
-        
-        if "breakdown" not in result:
-            return False
-        
-        # 检查分解是否为空
-        if not result["breakdown"]:
-            return False
-        
-        # 如果期望输出中有特定检查项，则进行检查
-        if "contains" in expected_output:
-            for item in expected_output["contains"]:
-                if item not in str(result):
-                    return False
-        
-        return True
-    
-    def _validate_planning(self, result: Dict[str, Any], expected_output: Dict[str, Any]) -> bool:
-        """
-        验证规划结果
-        
-        Args:
-            result: 规划结果
-            expected_output: 期望输出
-            
-        Returns:
-            验证是否通过
-        """
-        # 检查基本结构
-        if "error" in result:
-            return False
-        
-        if "steps" not in result:
-            return False
-        
-        # 检查步骤是否为空
-        if not result["steps"]:
-            return False
-        
-        # 如果期望输出中有特定检查项，则进行检查
-        if "contains" in expected_output:
-            for item in expected_output["contains"]:
-                if item not in str(result):
-                    return False
-        
-        return True
+        logger.info(f"HTML测试报告已生成: {html_path}")
+        return html_path
 
 def main():
     """主函数"""
-    parser = argparse.ArgumentParser(description="Automated Testing Workflow")
-    parser.add_argument("--config", type=str, help="Path to configuration file")
-    parser.add_argument("--requirements", type=str, help="Path to requirements file for generating test cases")
-    parser.add_argument("--test_cases", type=str, help="Path to test cases file")
-    parser.add_argument("--generate_only", action="store_true", help="Only generate test cases without running tests")
-    parser.add_argument("--output", type=str, help="Path to output directory")
-    args = parser.parse_args()
+    logger.info("启动PPT Agent自动化测试工作流")
     
-    try:
-        # 创建自动化测试工作流
-        workflow = AutomatedTestingWorkflow(args.config)
-        
-        # 初始化工作流
-        if not workflow.initialize():
-            logger.error("Failed to initialize automated testing workflow")
-            sys.exit(1)
-        
-        try:
-            # 如果指定了输出目录，则更新结果目录
-            if args.output:
-                workflow.results_dir = args.output
-                os.makedirs(workflow.results_dir, exist_ok=True)
-            
-            # 如果指定了需求文件，则生成测试用例
-            if args.requirements:
-                test_cases_file = workflow.generate_test_cases(args.requirements)
-                
-                if not test_cases_file:
-                    logger.error("Failed to generate test cases")
-                    sys.exit(1)
-                
-                # 如果只生成测试用例，则退出
-                if args.generate_only:
-                    logger.info(f"Test cases generated successfully: {test_cases_file}")
-                    sys.exit(0)
-                
-                # 使用生成的测试用例运行测试
-                results = workflow.run_all_tests(test_cases_file)
-            
-            # 如果指定了测试用例文件，则运行测试
-            elif args.test_cases:
-                results = workflow.run_all_tests(args.test_cases)
-            
-            # 如果既没有指定需求文件也没有指定测试用例文件，则报错
-            else:
-                logger.error("Either --requirements or --test_cases must be specified")
-                sys.exit(1)
-            
-            # 检查测试结果
-            if "error" in results:
-                logger.error(f"Error running tests: {results['error']}")
-                sys.exit(1)
-            
-            # 输出测试结果摘要
-            logger.info(f"Test summary: {results['passed_tests']}/{results['total_tests']} tests passed ({results['overall_pass_rate']})")
-            
-            # 根据通过率设置退出码
-            pass_rate = results['passed_tests'] / results['total_tests'] if results['total_tests'] > 0 else 0
-            if pass_rate >= 0.8:  # 80%通过率为成功
-                logger.info("Tests PASSED")
-                sys.exit(0)
-            else:
-                logger.warning("Tests FAILED")
-                sys.exit(1)
-                
-        finally:
-            # 关闭工作流
-            workflow.shutdown()
-            
-    except Exception as e:
-        logger.error(f"Error: {str(e)}")
-        sys.exit(1)
+    # 创建测试工作流实例
+    workflow = PptAgentTestWorkflow()
+    
+    # 运行所有测试
+    results = workflow.run_all_tests()
+    
+    # 生成HTML报告
+    html_report = workflow.generate_html_report()
+    
+    logger.info(f"测试完成，总体通过率: {results['overall']['pass_rate']}")
+    logger.info(f"HTML报告路径: {html_report}")
+    logger.info(f"JSON报告路径: {workflow.report_path}")
 
 if __name__ == "__main__":
     main()

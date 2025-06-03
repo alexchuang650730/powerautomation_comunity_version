@@ -1,322 +1,214 @@
 # PowerAutomation 集成方案
 
-本仓库包含 PowerAutomation 与 Gemini、Claude、Kilo Code、SRT 的集成方案，以及 supermemory API 的集成实现。
+本仓库包含 PowerAutomation 与 Gemini、Claude、Kilo Code 的集成方案，旨在打造一个强大的多模型协同系统，实现智能体自动化设计与测试。
 
-## 项目状态
+## 项目架构
 
-**第一阶段部分完成**：
+PowerAutomation 采用三层架构设计：
+
+### 1. 应用层
+- **Agent Problem Solver**：智能体问题解决器，处理用户请求并协调解决方案
+- **Proactive Problem Solver**：主动问题解决器，预测并解决潜在问题
+- **Release Manager**：发布管理器，管理智能体版本和部署
+- **Thought Action Recorder**：思维行为记录器，记录智能体思考和行动过程
+- **Supermemory Integration**：超级记忆集成，提供无限上下文记忆能力
+
+### 2. 增强层
+- **RL Factory**：强化学习工厂，提供智能体能力提升和优化
+- **S&T Integration**：SRT集成，提供GPU训练强化能力
+- **EveAgentX Algorithms**：智能决策算法，提供高级决策和行为预测能力
+- **Evolution Algorithms**：进化算法，支持智能体自我优化和适应
+
+### 3. 基础层
+- **MCP Tool**：多模型协调工具，管理不同模型间的协作
+- **Kilo Code Integration**：代码生成和集成对齐，提供高质量代码生成能力
+
+## 第一阶段：基础架构与集成（当前阶段）
 
 ### 已完成部分
-- 三层架构设计与实现
-- 适配器模式与接口定义
-- Gemini、Claude、Kilo Code 的基础集成
-- supermemory API 集成方案
-- 多模型协同层设计与实现
-- 自动化测试工作流框架
-- 用户界面整合
-- SRT GPU 训练强化
 
-### 待完成部分
-- 一般智能体的自动化设计工作流（已预留接口和结构）
-- 完整的自动化测试工作流（已实现框架，需完善具体实现）
+1. **架构设计与分析**
+   - 三层架构设计与组件定义
+   - 接口设计与数据流分析
+   - 与KiloCode、SRT的集成点定义
 
-## Kilo Code 与 SRT 技术特性
+2. **适配器开发**
+   - Claude适配器：实现与Claude API的集成
+   - Gemini适配器：实现与Gemini API的集成
+   - KiloCode适配器：实现与KiloCode的代码生成集成
 
-### Kilo Code 核心特性
+3. **多模型协同层**
+   - 实现模型间的协作机制
+   - 定义数据交换格式和协议
+   - 构建统一的API接口
 
-**技术定位**：
-- Kilo Code 是一个高级代码生成与解释框架，是 Roo Code 和 Cline 的超集
-- 专注于解决复杂代码生成和理解问题，具有强大的上下文处理能力
+4. **Supermemory API集成**
+   - 实现无限上下文记忆能力
+   - 集成六大特性和五大治理原则
+   - 提供记忆存储和检索接口
 
-**核心优势**：
-- 完美解决代码卡死和任务中断问题
-- 支持 MCP Server 市场，轻松扩展功能
-- 智能上下文压缩技术，有效处理大规模代码库
-- 自动触发智能任务分解，提高复杂任务处理能力
-- 实时代码解释功能，增强代码理解
-- 支持 5 种智能模式，适应不同场景需求
+5. **用户界面整合**
+   - 设计统一的用户交互界面
+   - 实现多模型输出的统一展示
+   - 支持用户反馈和偏好设置
 
-### SRT (Self-Rewarded Training) 核心特性
+6. **SRT GPU训练强化**
+   - 实现模型训练和优化接口
+   - 支持GPU加速训练
+   - 提供模型性能评估工具
 
-**技术定位**：
-- SRT 是一个专为大型推理模型设计的自训练强化学习框架
-- 专注于通过自我奖励机制提升模型的推理和问题解决能力
+### 正在进行中
 
-**核心优势**：
-- 自我奖励训练机制：利用模型自身的一致性来推断正确性信号
-- 在线强化学习：实时优化模型性能，无需大量标记数据
-- RLOO 算法：专为大型推理模型设计的强化学习优化算法
-- 分布式训练架构：支持高性能计算环境
-- 标准化数据预处理：支持多种数据集格式转换和处理
-- 模块化架构：基于 verl 框架构建，具有高度模块化特性
+1. **一般智能体的自动化设计工作流**
+   - 以PPT Agent为例，实现基于六大特性的智能体设计流程
+   - 严格遵循PPT Agent自身的六大特性定义
+   - 支持特性定义、代码生成和测试报告生成
 
-## 集成架构
+2. **完整的自动化测试工作流**
+   - 使用mcpcoordinator cli模拟测试ppt agent
+   - 覆盖六大特性的全面测试
+   - 提供详细的测试报告和可视化结果
 
-### 整体架构
+## 第二阶段：功能增强与智能性提升
 
-PowerAutomation 的三层架构集成了 Kilo Code 和 SRT：
+### 计划内容
 
-1. **基础层**：
-   - MCP Tool 作为基础设施
-   - **Kilo Code** 作为代码生成与解释引擎
-   - 提供核心功能和外部集成能力
+1. **EveAgentX算法集成**
+   - 集成TextGrad、MIPRO、AFlow等进化算法
+   - 实现智能体性能自动优化
+   - 支持工作流自动生成和优化
 
-2. **增强层**：
-   - RL Factory 作为基础强化学习框架
-   - **SRT** 作为自我奖励训练引擎
-   - EvoAgentX 的进化算法作为补充
-   - 提供学习、优化和自进化能力
+2. **自动化工作流生成**
+   - 根据自然语言目标自动生成和执行多智能体工作流
+   - 提供工作流可视化和调试工具
+   - 支持工作流模板和复用
 
-3. **应用层**：
-   - Development Tools 作为应用层
-   - 提供开发、部署和管理工具
-   - 协调 Kilo Code 和 SRT 的能力应用
+3. **基准测试集成**
+   - 集成HotPotQA、MBPP、MATH等标准化基准测试
+   - 建立智能体性能评估体系
+   - 提供性能对比和优化建议
 
-### 数据流与接口设计
-
-**Kilo Code 集成数据流**：
-1. Development Tools → Kilo Code：提供任务需求和上下文
-2. Kilo Code → MCP Tool：提供代码生成和解释服务
-3. Kilo Code → RL Factory：提供代码理解和任务分解能力
-
-**SRT 集成数据流**：
-1. Development Tools → SRT：提供训练数据和评估标准
-2. SRT → RL Factory：提供自我奖励训练机制和 RLOO 算法
-3. SRT → MCP Tool：优化 MCP 组件的推理能力
-
-**接口设计**：
-1. **Kilo Code 接口**：
-   - `code_generation_api`：代码生成接口
-   - `code_interpretation_api`：代码解释接口
-   - `task_decomposition_api`：任务分解接口
-   - `mcp_server_connector`：MCP Server 连接接口
-
-2. **SRT 接口**：
-   - `self_reward_training_api`：自我奖励训练接口
-   - `rloo_algorithm_api`：RLOO 算法接口
-   - `distributed_training_api`：分布式训练接口
-   - `data_preprocessing_api`：数据预处理接口
-
-## 后续阶段规划
-
-### 第一阶段：基础集成（1-3个月）
-
-1. **环境准备**：
-   - 搭建 Kilo Code 和 SRT 的运行环境
-   - 准备测试数据和评估指标
-   - 建立监控和日志系统
-
-2. **接口设计与实现**：
-   - 设计 Kilo Code 和 SRT 的标准接口
-   - 实现适配器和连接器
-   - 进行单元测试和集成测试
-
-3. **基础功能集成**：
-   - 将 Kilo Code 集成到 Development Tools 和 MCP Tool
-   - 将 SRT 集成到 RL Factory
-   - 进行基础功能测试和性能评估
-
-4. **集成点实现**：
-   - **Kilo Code 与 Development Tools 的集成**：
-     - `agent_problem_solver.py`：利用 Kilo Code 的智能任务分解和代码生成能力
-     - `proactive_problem_solver.py`：利用 Kilo Code 的实时代码解释功能
-     - `thought_action_recorder.py`：记录 Kilo Code 的代码生成和解释过程
-   
-   - **SRT 与 RL Factory 的集成**：
-     - `core/learning/`：集成 SRT 的 RLOO 算法和自我奖励训练机制
-     - `core/thought/`：利用 SRT 的推理能力增强思考模块
-     - `adapters/`：添加 SRT 适配器以连接外部系统
-   
-   - **Kilo Code 与 MCP Tool 的集成**：
-     - `adapters/`：添加 Kilo Code 适配器
-     - `core/`：利用 Kilo Code 增强核心组件
-     - `enhancers/`：利用 Kilo Code 的智能模式增强功能
-   
-   - **SRT 与 MCP Tool 的集成**：
-     - `mcp/`：利用 SRT 增强 MCP 的推理能力
-     - `enhancers/`：利用 SRT 的自我奖励机制增强功能
-     - `adapters/`：添加 SRT 适配器以连接外部系统
-
-### 第二阶段：功能增强（3-6个月）
-
-1. **智能性提升**：
-   - 优化 Kilo Code 的代码生成和解释功能
-   - 增强 SRT 的自我奖励训练机制
-   - 实现更高级的任务分解和推理能力
-
-2. **自进化能力建设**：
-   - 实现持续学习和自我评估机制
-   - 建立反馈循环和优化策略
-   - 增强系统的适应性和灵活性
-
-3. **与 EvoAgentX 的集成**：
-   - **EvoAgentX 算法集成**：实现 EvoAgentX 算法与现有架构的无缝集成
-     - 开发 EvoAgentX 适配器和接口
-     - 实现算法核心功能：智能决策、行为预测和自适应学习
-     - 与多模型协同层集成，实现模型间的协同决策
-     - 性能测试与优化，确保算法在各种场景下的稳定性和效率
-   - 集成 EvoAgentX 的工作流自动生成能力
-   - 集成 EvoAgentX 的进化算法
-   - 建立统一的评估框架
-
-4. **高级用户界面增强**：
+4. **高级用户界面增强**
    - 开发可视化智能体设计工具
-   - 实现智能体行为和思考过程的实时可视化
-   - 提供智能体性能分析和诊断工具
-   - 支持多种设备和屏幕尺寸的响应式设计
+   - 实现实时工作流可视化
+   - 提供交互式调试和优化界面
 
-5. **分布式训练框架**：
-   - 实现基于 Kubernetes 的分布式训练架构
-   - 开发训练任务调度和资源分配系统
-   - 实现模型并行和数据并行训练策略
-   - 提供训练过程监控和可视化工具
+5. **多LLM支持增强**
+   - 扩展对OpenAI、Gemini、OpenRouter、Groq等多种LLM的支持
+   - 实现模型自动选择和切换
+   - 提供模型性能对比和推荐
 
-### 第三阶段：系统优化（6-12个月）
+6. **分布式训练框架**
+   - 构建基于Kubernetes的分布式训练架构
+   - 支持大规模模型训练和优化
+   - 提供训练资源管理和调度
 
-1. **性能优化**：
-   - 优化计算资源利用
-   - 提高分布式训练效率
-   - 减少任务处理时间
+## 第三阶段：系统优化与生态建设
 
-2. **用户体验改进**：
-   - 优化界面和交互
-   - 提供更丰富的可视化功能
-   - 增强文档和教程
+### 计划内容
 
-3. **生态系统建设**：
-   - 建立插件和扩展机制
-   - 提供 API 和 SDK
-   - 建立社区和支持系统
+1. **企业级部署与集成**
+   - 实现企业级安全认证和授权
+   - 支持多租户和资源隔离
+   - 提供完整的监控和告警系统
 
-4. **企业级部署与集成**：
-   - 开发企业级安全认证和授权系统
-   - 实现与现有企业系统的集成接口
-   - 提供多租户支持和资源隔离
-   - 开发完整的审计日志和合规报告功能
-  
-5. **高级智能体协作系统**：
-   - 实现多智能体协作框架
-   - 开发智能体角色分配和任务协调机制
-   - 实现基于目标的智能体自组织能力
-   - 提供智能体协作过程的可视化和调试工具
-  
-6. **自适应学习与进化系统**：
-   - 实现智能体自适应学习机制
-   - 开发基于用户反馈的智能体进化系统
-   - 实现智能体知识库的自动构建和优化
-   - 提供智能体性能评估和比较工具
+2. **高级智能体协作系统**
+   - 构建多智能体协作框架
+   - 实现复杂任务的智能分解和协调
+   - 支持智能体间的知识共享和学习
 
-## Kilo Code 与 SRT 集成带来的系统增强
+3. **自适应学习与进化系统**
+   - 开发智能体进化系统
+   - 实现基于用户反馈的持续优化
+   - 支持知识库自动构建和更新
 
-### 智能性提升
+4. **性能优化**
+   - 优化系统响应时间和资源利用
+   - 实现智能缓存和预加载
+   - 提供性能分析和瓶颈识别工具
 
-**代码生成与理解能力**：
-- Kilo Code 的智能上下文压缩技术使系统能够处理更大规模的代码库
-- 实时代码解释功能提高了系统对代码的理解能力
-- 自动触发智能任务分解使系统能够更好地处理复杂任务
+5. **用户体验改进**
+   - 优化交互流程和界面设计
+   - 提供个性化推荐和建议
+   - 支持多语言和多地区部署
 
-**推理与问题解决能力**：
-- SRT 的自我奖励训练机制显著提升了系统的推理能力
-- RLOO 算法优化了系统的强化学习效果
-- 分布式训练架构使系统能够处理更大规模的训练数据
+6. **开源社区建设**
+   - 完善文档和教程
+   - 建立贡献者指南和社区规范
+   - 组织开发者活动和培训
 
-### 自进化能力提升
+## 环境准备
 
-**持续学习机制**：
-- SRT 的在线强化学习使系统能够从实时反馈中学习
-- 自我奖励机制使系统能够自主评估和改进自身性能
-- Kilo Code 的 MCP Server 市场使系统能够不断获取新功能
+### 依赖安装
 
-**适应性增强**：
-- Kilo Code 的 5 种智能模式使系统能够适应不同场景
-- SRT 的模块化架构使系统能够灵活扩展
-- 两者的结合使系统能够根据任务需求自动调整策略
+```bash
+# 安装Python依赖
+pip install -r requirements.txt
 
-### 性能与效率提升
+# 安装前端依赖
+cd frontend && npm install
+```
 
-**计算资源优化**：
-- Kilo Code 的智能上下文压缩技术减少了内存使用
-- SRT 的分布式训练架构提高了计算效率
-- 两者的结合优化了系统的资源利用
+### 配置设置
 
-**任务处理效率**：
-- Kilo Code 的自动任务分解加速了复杂任务的处理
-- SRT 的 RLOO 算法提高了学习效率
-- 两者的结合显著减少了任务完成时间
+1. 创建`.env`文件并设置必要的API密钥：
 
-## 目录结构
+```
+CLAUDE_API_KEY=your_claude_api_key
+GEMINI_API_KEY=your_gemini_api_key
+SUPERMEMORY_API_KEY=your_supermemory_api_key
+```
 
-- `/adapters`: 适配器实现
-  - `/adapters/interfaces`: 接口定义
-  - `/adapters/kilocode`: Kilo Code 适配器
-  - `/adapters/claude`: Claude 适配器
-  - `/adapters/manus`: 智能体设计相关组件（预留）
-  - `/adapters/srt`: SRT 适配器
-- `/cli_testing`: 命令行测试工具
-- `/config`: 配置文件
-- `/integration`: 集成实现
-- `/images`: 架构图和其他图片资源
+2. 配置数据库连接（如需要）：
 
-## 架构图
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=powerautomation
+DB_USER=postgres
+DB_PASSWORD=your_password
+```
 
-![PowerAutomation 三层架构](/images/powerautomation_architecture.png)
+## 使用指南
 
-## 文档
+### 启动服务
 
-- [集成文档](/integration_documentation_updated.md)
-- [Supermemory API 集成文档](/supermemory_integration.md)
-- [Gemini 适配器文档](/gemini_adapter_documentation.md)
-- [Kilo Code 与 SRT 集成方案](/PowerAutomation三大模块与KiloCode、SRT集成方案.md)
+```bash
+# 启动后端服务
+python server.py
 
-## 使用说明
+# 启动前端开发服务器
+cd frontend && npm run dev
+```
 
-1. 配置环境变量：
-   ```bash
-   export CLAUDE_API_KEY="your_claude_api_key"
-   export GEMINI_API_KEY="your_gemini_api_key"
-   export KILO_CODE_API_KEY="your_kilo_code_api_key"
-   export SUPERMEMORY_API_KEY="your_supermemory_api_key"
-   export SRT_API_KEY="your_srt_api_key"
-   ```
+### 使用自动化测试工作流
 
-2. 安装依赖：
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+# 运行PPT Agent自动化测试
+python cli_testing/automated_testing_workflow.py
 
-3. 运行测试：
-   ```bash
-   python cli_testing/test_adapter.py
-   ```
+# 查看测试报告
+open results/ppt_agent_test_report_*.html
+```
 
-## 关键成功因素
+### 使用自动化设计工作流
 
-1. **技术整合**：
-   - 确保 Kilo Code 和 SRT 与现有系统的无缝集成
-   - 解决技术冲突和兼容性问题
-   - 优化系统架构和性能
+```bash
+# 运行智能体设计工作流
+python adapters/general_agent/agent_design_workflow.py
 
-2. **资源管理**：
-   - 合理分配计算资源
-   - 优化内存和存储使用
-   - 确保系统稳定性和可靠性
+# 查看设计报告
+open results/agent_design/ppt_agent_design_report.md
+```
 
-3. **团队协作**：
-   - 建立跨团队协作机制
-   - 明确责任和分工
-   - 保持良好的沟通和协调
+## 贡献指南
 
-4. **评估与反馈**：
-   - 建立科学的评估指标
-   - 收集用户反馈
-   - 持续改进和优化
+1. Fork本仓库
+2. 创建您的特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 打开一个Pull Request
 
-## 后续开发计划
+## 许可证
 
-1. 完成一般智能体的自动化设计工作流
-2. 完善自动化测试工作流
-3. 集成 EvoAgentX 算法
-4. 优化多模型协同层
-5. 增强 supermemory API 集成功能
-6. 实现 Kilo Code 与 SRT 的深度集成
-7. 建立完整的评估与反馈机制
+本项目采用MIT许可证 - 详见LICENSE文件
